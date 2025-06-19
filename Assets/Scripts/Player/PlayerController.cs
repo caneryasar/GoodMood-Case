@@ -1,6 +1,7 @@
-using UniRx;
+using R3;
 using UnityEngine;
 using UnityEngine.InputSystem.Utilities;
+using Observable = R3.Observable;
 
 public class PlayerController : MonoBehaviour {
 
@@ -15,8 +16,7 @@ public class PlayerController : MonoBehaviour {
     private bool _isComboable;
     
     private Vector3 _movementDirection;
-    // private int _attackTriggerCount;
-    private ReactiveProperty<int> _attackTriggerCount;
+    private int _attackTriggerCount;
 
     private int _comboCountCheck;
     
@@ -26,8 +26,6 @@ public class PlayerController : MonoBehaviour {
     private Transform _playerCamera;
     
     private void Awake() {
-        
-        _attackTriggerCount = new ReactiveProperty<int>(0);
     }
 
     void Start() {
@@ -39,13 +37,14 @@ public class PlayerController : MonoBehaviour {
         Subscribe();
         InitializeValues();
         
-        UniRx.Observable.Where(_attackTriggerCount, x => x == 1).Subscribe(_ => {
+        
+        
+        Observable.EveryValueChanged(this, _ => _attackTriggerCount)
+            .Where(x => x == 1)
+            .Subscribe(_ => {
                 
                 _eventArchive.gameplay.InvokeOnAttacking();
-        });                        
-        
-        
-        Debug.Log(_attackTriggerCount.Value);
+            });
     }
 
     void Update() {
@@ -68,7 +67,7 @@ public class PlayerController : MonoBehaviour {
         _characterController.Move(actualDirection * (movementSpeed * Time.deltaTime));
 
         
-        Debug.Log(_attackTriggerCount.Value);
+        Debug.Log(_attackTriggerCount);
     }
 
     private void InitializeValues() {                                                                                                                                                                       
@@ -86,7 +85,7 @@ public class PlayerController : MonoBehaviour {
             _movementDirection = Vector3.forward * input.y + Vector3.right * input.x;
         };
         
-        _eventArchive.playerInputs.OnAttack += () => { _attackTriggerCount.Value++; };
+        _eventArchive.playerInputs.OnAttack += () => { _attackTriggerCount++; };
         _eventArchive.playerInputs.OnLockOn += () => _isLockedOn = !_isLockedOn;
         
     }
@@ -94,19 +93,19 @@ public class PlayerController : MonoBehaviour {
     internal void ComboStart() {
         
         _isComboable = true;
-        _comboCountCheck = _attackTriggerCount.Value;
+        _comboCountCheck = _attackTriggerCount;
     }
 
     internal void ComboEnd() {
         
-        if(_comboCountCheck == _attackTriggerCount.Value) { _isComboable = false; }
+        if(_comboCountCheck == _attackTriggerCount) { _isComboable = false; }
 
         _eventArchive.gameplay.InvokeOnCombo(_isComboable);
     }
 
     internal void ResetAttackTriggerCounter() {
 
-        _attackTriggerCount.Value = 0;
+        _attackTriggerCount = 0;
         _isComboable = false;
     }
     
