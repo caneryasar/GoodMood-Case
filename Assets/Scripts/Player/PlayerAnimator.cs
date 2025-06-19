@@ -1,3 +1,6 @@
+using DG.Tweening;
+using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 
 public class PlayerAnimator : MonoBehaviour {
@@ -10,22 +13,39 @@ public class PlayerAnimator : MonoBehaviour {
     private static readonly int Attack = Animator.StringToHash("Attack");
     private static readonly int Combo = Animator.StringToHash("Combo");
 
+    private string _stateTransition;
+    
     private Animator _animator;
 
     private EventArchive _eventArchive;
 
     private bool _isLockedOn;
+    private bool _isDummyDead = false;
     
     void Start() {
         
         _animator = GetComponent<Animator>();
         
         Subscribe();
-    }
-    void Update() {
+
+        this.UpdateAsObservable().Subscribe(_ => {
+
+            if(_animator.GetAnimatorTransitionInfo(1).IsName("Attack_1 -> Exit") ||
+               _animator.GetAnimatorTransitionInfo(1).IsName("Attack_2 -> Exit") ||
+               _animator.GetAnimatorTransitionInfo(1).IsName("Attack_3 -> Exit")) {
+                
+               _animator.SetLayerWeight(1, 0); 
+            }
+            
+            if(_animator.GetCurrentAnimatorStateInfo(1).IsName("Empty")) { _eventArchive.gameplay.InvokeOnAttackComboCount(0); }
+            if(_animator.GetAnimatorTransitionInfo(1).IsName("Empty -> Attack_1")) { _eventArchive.gameplay.InvokeOnAttackComboCount(1); }
+            if(_animator.GetAnimatorTransitionInfo(1).IsName("Attack_1 -> Attack_2")) { _eventArchive.gameplay.InvokeOnAttackComboCount(2); }
+            if(_animator.GetAnimatorTransitionInfo(1).IsName("Attack_2 -> Attack_3")) { _eventArchive.gameplay.InvokeOnAttackComboCount(3); }
+            
+            if(_animator.GetLayerWeight(1) == 0) { _animator.SetBool(Attack, false);}
+        });
         
     }
-
 
     private void Subscribe() {
 
@@ -35,6 +55,8 @@ public class PlayerAnimator : MonoBehaviour {
         _eventArchive.playerInputs.OnLockOn += () => _isLockedOn = !_isLockedOn;
         _eventArchive.gameplay.OnAttacking += Attacking;
         _eventArchive.gameplay.OnCombo += CanCombo;
+        _eventArchive.dummyEvents.OnDeath += () => _isDummyDead = true;
+        _eventArchive.dummyEvents.OnRespawn += () => _isDummyDead = false;
     }
 
 
@@ -50,16 +72,16 @@ public class PlayerAnimator : MonoBehaviour {
         _animator.SetBool(Combo, isComboing);
 
         if(isComboing) { return; }
-
-        if(!(_animator.GetCurrentAnimatorStateInfo(0).normalizedTime > 1) || _animator.IsInTransition(0)) { return; }
         
-        _animator.SetLayerWeight(1, 0);
-        _animator.SetBool(Attack, isComboing);
+        _animator.SetBool(Attack, false);
+        
     }
 
     private void AnimateMove(Vector2 direction) {
 
         if(direction != Vector2.zero) {
+
+            if(_isDummyDead) { _isLockedOn = false; }
 
             if(_isLockedOn) {
                 

@@ -95373,8 +95373,29 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
-  - time: 1.0666667
-    functionName: ResetAttackTriggerCounter
+  - time: 0.06666667
+    functionName: ComboStart
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.16666667
+    functionName: EnableSwords
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.5
+    functionName: DisableSwords
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.6666667
+    functionName: ComboEnd
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

@@ -119356,7 +119356,21 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 1.2666667
+  - time: 0.33333334
+    functionName: EnableSwords
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.6
+    functionName: DisableSwords
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.8333333
     functionName: ComboEnd
     data: 
     objectReferenceParameter: {fileID: 0}

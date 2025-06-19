@@ -1,7 +1,5 @@
-using R3;
+using UniRx;
 using UnityEngine;
-using UnityEngine.InputSystem.Utilities;
-using Observable = R3.Observable;
 
 public class PlayerController : MonoBehaviour {
 
@@ -12,6 +10,7 @@ public class PlayerController : MonoBehaviour {
     private float _rotationSpeed;
 
     private bool _isLockedOn;
+    private bool _isDummyDead;
 
     private bool _isComboable;
     
@@ -24,6 +23,8 @@ public class PlayerController : MonoBehaviour {
     
     private EventArchive _eventArchive;
     private Transform _playerCamera;
+
+    private Transform _dummy;
     
     private void Awake() {
     }
@@ -36,15 +37,19 @@ public class PlayerController : MonoBehaviour {
         
         Subscribe();
         InitializeValues();
-        
-        
-        
-        Observable.EveryValueChanged(this, _ => _attackTriggerCount)
-            .Where(x => x == 1)
-            .Subscribe(_ => {
+
+        this.ObserveEveryValueChanged(_ => _attackTriggerCount).Subscribe(x => {
+
+            if(x != 1 && !_isComboable) {
+
+                _attackTriggerCount = 0;
                 
-                _eventArchive.gameplay.InvokeOnAttacking();
-            });
+                return;
+            }
+            _eventArchive.gameplay.InvokeOnAttacking();
+        });
+        
+        _dummy = GameObject.FindGameObjectWithTag("Dummy").transform;
     }
 
     void Update() {
@@ -61,13 +66,22 @@ public class PlayerController : MonoBehaviour {
         if(_movementDirection == Vector3.zero) { return; }
         var currentFwd = transform.forward;
         transform.forward = Vector3.SlerpUnclamped(currentFwd, actualDirection, _rotationSpeed * Time.deltaTime);
+
+        if(_isDummyDead) {
+            
+            _isLockedOn = false;
+            transform.LookAt(transform);
+        }
         
         var movementSpeed = _isLockedOn ? _lockOnMoveSpeed : _freeMoveSpeed;
+
+        if(_isLockedOn) {
+            
+            transform.LookAt(_dummy);
+        }
         
         _characterController.Move(actualDirection * (movementSpeed * Time.deltaTime));
-
         
-        Debug.Log(_attackTriggerCount);
     }
 
     private void InitializeValues() {                                                                                                                                                                       
@@ -87,6 +101,8 @@ public class PlayerController : MonoBehaviour {
         
         _eventArchive.playerInputs.OnAttack += () => { _attackTriggerCount++; };
         _eventArchive.playerInputs.OnLockOn += () => _isLockedOn = !_isLockedOn;
+        _eventArchive.dummyEvents.OnDeath += () => { _isDummyDead = true; };
+        _eventArchive.dummyEvents.OnRespawn += () => { _isDummyDead = false; };
         
     }
 
@@ -98,7 +114,9 @@ public class PlayerController : MonoBehaviour {
 
     internal void ComboEnd() {
         
-        if(_comboCountCheck == _attackTriggerCount) { _isComboable = false; }
+        // Debug.Log($"attack start: {_comboCountCheck} / attack end: {_attackTriggerCount}");
+
+        if(_comboCountCheck == _attackTriggerCount) { ResetAttackTriggerCounter(); }
 
         _eventArchive.gameplay.InvokeOnCombo(_isComboable);
     }
