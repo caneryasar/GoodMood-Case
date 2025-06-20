@@ -2278,7 +2278,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5463439451149846322}
-  - component: {fileID: 2103785686457490760}
   m_Layer: 0
   m_Name: Model
   m_TagString: Untagged
@@ -2305,28 +2304,6 @@ Transform:
   - {fileID: 5501340762544234504}
   m_Father: {fileID: 6795456698520079044}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &2103785686457490760
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4654990934089670024}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 831f7229e82863e4d80ada075e09eba6, type: 3}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 1
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 1
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4703301916266991900
 GameObject:
   m_ObjectHideFlags: 0
