@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using Microsoft.Win32.SafeHandles;
 using UniRx;
@@ -9,6 +10,8 @@ using UnityEngine.VFX;
 
 public class DummyHandler : MonoBehaviour {
 
+    public AudioData audioData;
+    
     [SerializeField] private float dummyHealth = 100;
 
     private float _startHealth;
@@ -17,9 +20,11 @@ public class DummyHandler : MonoBehaviour {
     private CapsuleCollider _collider;
     private Animator _animator;
     private CinemachineImpulseSource _impulseSource;
-    private SkinnedMeshRenderer _renderer;
-    private Material _material;
+    private SkinnedMeshRenderer[] _renderers;
+    private List<Material> _materials;
     private VisualEffect _impact;
+    private AudioSource _audioSource;
+    private Rigidbody _rigidbody;
     
     private static readonly int Hit = Animator.StringToHash("Hit");
     private static readonly int Idle = Animator.StringToHash("Idle");
@@ -31,13 +36,17 @@ public class DummyHandler : MonoBehaviour {
         
         _startHealth = dummyHealth;
 
+        _materials = new List<Material>();
+
         _collider = GetComponentInChildren<CapsuleCollider>();
         _animator = GetComponent<Animator>();
         _impulseSource = GetComponent<CinemachineImpulseSource>();
-        _renderer = GetComponentInChildren<SkinnedMeshRenderer>();
-        _material = _renderer.material;
+        _renderers = GetComponentsInChildren<SkinnedMeshRenderer>();
+        foreach(var skinnedMeshRenderer in _renderers) { _materials.Add(skinnedMeshRenderer.material); }
         _impact = GetComponentInChildren<VisualEffect>(true);
         _impact.gameObject.SetActive(false);
+        _audioSource = GetComponentInChildren<AudioSource>();
+        _rigidbody = GetComponent<Rigidbody>();
         
         Subscribe();
     }
@@ -52,19 +61,20 @@ public class DummyHandler : MonoBehaviour {
     
     private void OnTriggerEnter(Collider other) {
 
-        if(other.CompareTag("Sword")) {
+        if(dummyHealth <= 0) { return; }
 
-            _eventArchive.gameplay.InvokeOnDummyHit();
-            _impulseSource.GenerateImpulseWithForce(0.5f * _comboCount);
+        if(!other.CompareTag("Sword")) { return; }
+        
+        _eventArchive.gameplay.InvokeOnDummyHit();
+        _impulseSource.GenerateImpulseWithForce(0.5f * _comboCount);
 
-            var impactSpawn = other.ClosestPointOnBounds(transform.position);
+        var impactSpawn = _collider.ClosestPointOnBounds(other.transform.position);
             
-            _impact.transform.position = impactSpawn;
-            _impact.gameObject.SetActive(true);
-            _impact.Play();
+        _impact.transform.position = impactSpawn;
+        _impact.gameObject.SetActive(true);
+        _impact.Play();
             
-            DOVirtual.DelayedCall(1f, () => _impact.gameObject.SetActive(false));
-        }
+        DOVirtual.DelayedCall(1f, () => _impact.gameObject.SetActive(false));
     }
 
     private void ReceiveDamage(float dmg) {
@@ -75,12 +85,20 @@ public class DummyHandler : MonoBehaviour {
             
             DeathAnimation();
             _eventArchive.dummyEvents.InvokeOnDeath();
+            
+            _audioSource.clip = audioData.dummyDeath;
+            _audioSource.volume = .5f;
         }
         else {
             
             dummyHealth -= dmg;
             HitAnimation();
+            
+            _audioSource.clip = audioData.hitSounds[_comboCount - 1];
+            _audioSource.volume = .75f;
         }
+
+        _audioSource.Play();
         
         _eventArchive.dummyEvents.InvokeOnHealthChanged(dummyHealth, _startHealth);
     }
@@ -98,14 +116,16 @@ public class DummyHandler : MonoBehaviour {
     }
 
     private void DeathAnimation() {
-        
-        _collider.enabled = false;
+
+        _rigidbody.isKinematic = true;
         
         _animator.SetBool(Idle, false);
-        
         _animator.SetBool(Dead, true);
 
-        DOVirtual.Float(0f, 1f, 4f, dissolve => _material.SetFloat("_DissolveAmount", dissolve));
+        DOVirtual.Float(0f, 1f, 4f, dissolve => {
+            
+            foreach(var material in _materials) { material.SetFloat("_DissolveAmount", dissolve); }
+        });
         
         Respawn();
     }
@@ -123,11 +143,10 @@ public class DummyHandler : MonoBehaviour {
             _eventArchive.dummyEvents.InvokeOnHealthChanged(dummyHealth, _startHealth);
             _eventArchive.dummyEvents.InvokeOnRespawn();
 
-            DOVirtual.Float(1f, 0f, 1f, dissolve => _material.SetFloat("_DissolveAmount", dissolve))
-                .OnComplete(() => {
-                    
-                    _collider.enabled = true;
-                });
+            DOVirtual.Float(1f, 0f, 1f, dissolve => {
+            
+                    foreach(var material in _materials) { material.SetFloat("_DissolveAmount", dissolve); }
+                }).OnComplete(() => { _rigidbody.isKinematic = false; });
         });
     }
 }

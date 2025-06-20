@@ -12,8 +12,10 @@ public class PlayerAnimator : MonoBehaviour {
     private static readonly int DirectionY = Animator.StringToHash("DirectionY");
     private static readonly int Attack = Animator.StringToHash("Attack");
     private static readonly int Combo = Animator.StringToHash("Combo");
+    private static readonly int IsPlayable = Animator.StringToHash("isPlayable");
 
     private string _stateTransition;
+    private bool _isPlayable = false;
     
     private Animator _animator;
 
@@ -25,6 +27,8 @@ public class PlayerAnimator : MonoBehaviour {
     void Start() {
         
         _animator = GetComponent<Animator>();
+        
+        _animator.SetLayerWeight(2, 1);
         
         Subscribe();
 
@@ -50,12 +54,23 @@ public class PlayerAnimator : MonoBehaviour {
 
         _eventArchive = FindFirstObjectByType<EventArchive>();
 
+
+        _eventArchive.gameplay.OnPlayable += SetLayer; 
         _eventArchive.playerInputs.OnMove += AnimateMove;
         _eventArchive.playerInputs.OnLockOn += LockedOn;
         _eventArchive.gameplay.OnAttacking += Attacking;
         _eventArchive.gameplay.OnCombo += CanCombo;
         _eventArchive.dummyEvents.OnDeath += () => _isDummyDead = true;
         _eventArchive.dummyEvents.OnRespawn += () => _isDummyDead = false;
+    }
+
+    private void SetLayer(bool status) {
+
+        _isPlayable = status;
+        
+        _animator.SetLayerWeight(2, 0);
+        _animator.SetBool(IsPlayable, status);
+        
     }
 
     private void LockedOn() {
@@ -84,6 +99,8 @@ public class PlayerAnimator : MonoBehaviour {
     }
 
     private void AnimateMove(Vector2 direction) {
+        
+        if(!_isPlayable) { return; }
 
         if(direction != Vector2.zero) {
 

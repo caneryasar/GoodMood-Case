@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class AudioData : ScriptableObject {
 
+    public AudioClip bgMusic;
+    
     public AudioClip walkSound;
     public List<AudioClip> attackSounds; 
     public List<AudioClip> hitSounds; 

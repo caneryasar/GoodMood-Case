@@ -3,9 +3,10 @@ using Unity.Cinemachine;
 using UnityEngine;
 
 public class PlayerCameraHandler : MonoBehaviour {
-    
-    private CinemachineCamera _playerCamera;
 
+    private CinemachineCamera _titleCamera;
+    private CinemachineCamera _playerCamera;
+    
     [SerializeField] private float freeLookFOV;
     [SerializeField] private float lockOnFOV;
     
@@ -21,12 +22,21 @@ public class PlayerCameraHandler : MonoBehaviour {
 
         _eventArchive = FindFirstObjectByType<EventArchive>();
 
+        _eventArchive.gameplay.OnPlayable += PlayableCamera; 
         _eventArchive.playerInputs.OnLockOn += SetUpCameras;
-        _eventArchive.gameplay.OnDummyHit += CameraShake;
         _eventArchive.dummyEvents.OnDeath += DummyDeath;
         _eventArchive.dummyEvents.OnRespawn += () => _isDummyDead = false;
 
         _playerCamera = GetComponentInChildren<CinemachineCamera>();
+        _titleCamera = _eventArchive.GetComponentInChildren<CinemachineCamera>();
+    }
+
+    private void PlayableCamera(bool status) {
+        
+        if(!status) { return; }
+
+        _titleCamera.Priority = 0;
+        _titleCamera.gameObject.SetActive(false);
     }
 
     private void DummyDeath() {
@@ -36,10 +46,6 @@ public class PlayerCameraHandler : MonoBehaviour {
         _freeLookCameraActive = true;
         _playerCamera.Lens.FieldOfView = freeLookFOV;
         _playerCamera.LookAt = transform;
-    }
-
-    private void CameraShake() {
-        //todo: shake camera based on combo
     }
 
     private void SetUpCameras() {

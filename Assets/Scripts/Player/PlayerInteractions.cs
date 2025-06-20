@@ -8,6 +8,7 @@ public class PlayerInteractions : MonoBehaviour {
     private PlayerData _playerData;
     
     private List<GameObject> _swords;
+    private GameObject[] _swordArray;
     private List<Collider> _swordColliders;
     private ParticleSystem[] _leftSwordParticles;
     private ParticleSystem[] _rightSwordParticles;
@@ -22,14 +23,27 @@ public class PlayerInteractions : MonoBehaviour {
         
         Subscribe();
 
-        _swords = new List<GameObject>();
-        _swordColliders = new List<Collider>();
+        _swords = new List<GameObject>(new GameObject[2]);
+        _swordColliders = new List<Collider>(new Collider[2]);
         
-        _swords = GameObject.FindGameObjectsWithTag("Sword").ToList();
-        foreach(var sword in _swords) { _swordColliders.Add(sword.gameObject.GetComponentInChildren<Collider>()); }
+        var swords = GameObject.FindGameObjectsWithTag("Sword").ToList();
         
-        _leftSwordParticles = _swords[0].GetComponentsInChildren<ParticleSystem>();
-        _rightSwordParticles = _swords[1].GetComponentsInChildren<ParticleSystem>();
+        foreach(var sword in swords) {
+            
+            if(sword.name.Contains("Left")) {
+                
+                _swords[0] = sword;
+                _swordColliders[0] = _swords[0].gameObject.GetComponentInChildren<Collider>();
+                _leftSwordParticles = _swords[0].GetComponentsInChildren<ParticleSystem>();
+            }
+            else {
+
+                _swords[1] = sword;
+                _swordColliders[1] = _swords[1].gameObject.GetComponentInChildren<Collider>();
+                _rightSwordParticles = _swords[1].GetComponentsInChildren<ParticleSystem>();
+            }
+            
+        }
         
         foreach(var leftSwordParticle in _leftSwordParticles) { leftSwordParticle.Stop(); }
         foreach(var rightSwordParticle in _rightSwordParticles) { rightSwordParticle.Stop(); }
@@ -40,6 +54,7 @@ public class PlayerInteractions : MonoBehaviour {
     private void Subscribe() {
         
         _eventArchive = FindFirstObjectByType<EventArchive>();
+        
         _eventArchive.gameplay.OnAttackComboCount += count => _comboCount = count;
         _eventArchive.gameplay.OnDummyHit += ReturnDamage;
     }

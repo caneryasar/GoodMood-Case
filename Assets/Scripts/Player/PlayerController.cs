@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour {
     private float _lockOnMoveSpeed;
     private float _rotationSpeed;
 
+    private bool _isPlayable = false;
+
     private bool _isLockedOn;
     private bool _isDummyDead;
 
@@ -78,11 +80,14 @@ public class PlayerController : MonoBehaviour {
             transform.LookAt(_dummy);
         }
         
+        // _characterController.Move(actualDirection * (movementSpeed * Time.deltaTime));
         _characterController.Move(actualDirection * (movementSpeed * Time.deltaTime));
+        _characterController.Move(transform.up * (-9.81f * Time.deltaTime));
         
     }
 
-    private void InitializeValues() {                                                                                                                                                                       
+    private void InitializeValues() {        
+        
         _freeMoveSpeed = playerData.freeMoveSpeed;
         _lockOnMoveSpeed = playerData.lockOnMoveSpeed;
         _rotationSpeed = playerData.rotationSpeed;
@@ -92,6 +97,8 @@ public class PlayerController : MonoBehaviour {
         
         _eventArchive = FindFirstObjectByType<EventArchive>();
 
+        _eventArchive.gameplay.OnPlayable += status => _isPlayable = status; 
+        
         _eventArchive.playerInputs.OnMove += input => {
 
             _movementDirection = Vector3.forward * input.y + Vector3.right * input.x;

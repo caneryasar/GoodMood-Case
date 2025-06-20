@@ -12,19 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db26599ecf2669498082a56a4982cf0, type: 3}
   m_Name: AudioData
   m_EditorClassIdentifier: 
-  walkSound: {fileID: 8300000, guid: 9df7929bfd213bb4c8e9af318f2a24df, type: 3}
+  bgMusic: {fileID: 8300000, guid: d995a23696549f2488a971a010d12a4d, type: 3}
+  walkSound: {fileID: 8300000, guid: ed2b813a21636654f95268e2148f165c, type: 3}
   attackSounds:
   - {fileID: 8300000, guid: 59968f5615926a143b56042e8ee5c2e4, type: 3}
   - {fileID: 8300000, guid: e551cba2cce061843a25d674c3865674, type: 3}
   - {fileID: 8300000, guid: 71f56da44662c3e4fb8cd21b86c04663, type: 3}
-  attackSound1: {fileID: 8300000, guid: 59968f5615926a143b56042e8ee5c2e4, type: 3}
-  attackSound2: {fileID: 8300000, guid: e551cba2cce061843a25d674c3865674, type: 3}
-  attackSound3: {fileID: 8300000, guid: 71f56da44662c3e4fb8cd21b86c04663, type: 3}
   hitSounds:
   - {fileID: 8300000, guid: 16b72286f06559a48a728fc0fbc5d792, type: 3}
   - {fileID: 8300000, guid: 98a1cbb2d961b584fa1a40d7207446f6, type: 3}
   - {fileID: 8300000, guid: b9e51c4f16078094fa7daa98b5be21ac, type: 3}
-  hitSound1: {fileID: 8300000, guid: 16b72286f06559a48a728fc0fbc5d792, type: 3}
-  hitSound2: {fileID: 8300000, guid: 98a1cbb2d961b584fa1a40d7207446f6, type: 3}
-  hitSound3: {fileID: 8300000, guid: b9e51c4f16078094fa7daa98b5be21ac, type: 3}
   dummyDeath: {fileID: 8300000, guid: bb416b4bece7a4d49add97b279840863, type: 3}
