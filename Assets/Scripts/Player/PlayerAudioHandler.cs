@@ -69,8 +69,6 @@ public class PlayerAudioHandler : MonoBehaviour {
 
     private void PlayAttackSounds() {
         
-        Debug.Log(_comboCount);
-        
         if(_comboCount == 0) { return; }
         
         _attackAudioSource.loop = false;
