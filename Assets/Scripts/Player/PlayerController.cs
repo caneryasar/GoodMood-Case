@@ -26,8 +26,6 @@ public class PlayerController : MonoBehaviour {
 
     private Transform _dummy;
     
-    private void Awake() {
-    }
 
     void Start() {
 

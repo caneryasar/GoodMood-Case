@@ -5,6 +5,7 @@ using UniRx;
 using UniRx.Triggers;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class DummyHandler : MonoBehaviour {
 
@@ -18,6 +19,7 @@ public class DummyHandler : MonoBehaviour {
     private CinemachineImpulseSource _impulseSource;
     private SkinnedMeshRenderer _renderer;
     private Material _material;
+    private VisualEffect _impact;
     
     private static readonly int Hit = Animator.StringToHash("Hit");
     private static readonly int Idle = Animator.StringToHash("Idle");
@@ -34,14 +36,20 @@ public class DummyHandler : MonoBehaviour {
         _impulseSource = GetComponent<CinemachineImpulseSource>();
         _renderer = GetComponentInChildren<SkinnedMeshRenderer>();
         _material = _renderer.material;
+        _impact = GetComponentInChildren<VisualEffect>(true);
+        _impact.gameObject.SetActive(false);
+        
+        Subscribe();
+    }
+
+    private void Subscribe() {
         
         _eventArchive = FindFirstObjectByType<EventArchive>();
 
         _eventArchive.dummyEvents.OnGetDamage += ReceiveDamage;
         _eventArchive.gameplay.OnAttackComboCount += count => _comboCount = count;
-        
     }
-
+    
     private void OnTriggerEnter(Collider other) {
 
         if(other.CompareTag("Sword")) {
@@ -49,6 +57,13 @@ public class DummyHandler : MonoBehaviour {
             _eventArchive.gameplay.InvokeOnDummyHit();
             _impulseSource.GenerateImpulseWithForce(0.5f * _comboCount);
 
+            var impactSpawn = other.ClosestPointOnBounds(transform.position);
+            
+            _impact.transform.position = impactSpawn;
+            _impact.gameObject.SetActive(true);
+            _impact.Play();
+            
+            DOVirtual.DelayedCall(1f, () => _impact.gameObject.SetActive(false));
         }
     }
 
@@ -90,7 +105,7 @@ public class DummyHandler : MonoBehaviour {
         
         _animator.SetBool(Dead, true);
 
-        DOVirtual.Float(0f, 1f, 2.5f, dissolve => _material.SetFloat("_DissolveAmount", dissolve));
+        DOVirtual.Float(0f, 1f, 4f, dissolve => _material.SetFloat("_DissolveAmount", dissolve));
         
         Respawn();
     }
@@ -101,6 +116,7 @@ public class DummyHandler : MonoBehaviour {
             
             _animator.SetBool(Dead, false);
             _animator.SetBool(Idle, true);
+            
         }).OnComplete(() => {
             
             dummyHealth = _startHealth;

@@ -44,7 +44,6 @@ public class PlayerAnimator : MonoBehaviour {
             
             if(_animator.GetLayerWeight(1) == 0) { _animator.SetBool(Attack, false);}
         });
-        
     }
 
     private void Subscribe() {
@@ -52,11 +51,18 @@ public class PlayerAnimator : MonoBehaviour {
         _eventArchive = FindFirstObjectByType<EventArchive>();
 
         _eventArchive.playerInputs.OnMove += AnimateMove;
-        _eventArchive.playerInputs.OnLockOn += () => _isLockedOn = !_isLockedOn;
+        _eventArchive.playerInputs.OnLockOn += LockedOn;
         _eventArchive.gameplay.OnAttacking += Attacking;
         _eventArchive.gameplay.OnCombo += CanCombo;
         _eventArchive.dummyEvents.OnDeath += () => _isDummyDead = true;
         _eventArchive.dummyEvents.OnRespawn += () => _isDummyDead = false;
+    }
+
+    private void LockedOn() {
+        
+        if(_isDummyDead) { return;}
+        
+        _isLockedOn = !_isLockedOn;
     }
 
 
